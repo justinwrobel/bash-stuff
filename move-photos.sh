@@ -13,6 +13,12 @@ clean_filename(){
   echo $f 
 }
 
+remove_img(){
+  f=$(basename $1)
+  f=${f,,}
+  echo ${f//img_/}
+}
+
 dest="${!#}"
 
 
@@ -29,13 +35,14 @@ for i ; do
   #if 0x9003 didn't have anything try 0x0132
   if [ -z "$dst1" ]; then dst1=$(exif -t 0x0132 -m $i); fi 
 
+  filename=$(remove_img "$i") 
 
   #chop/clean the date up
   dst2=${dst1:0:7} 		#2013:07
   dst_dn=${dst2//://}
   dst_fn=${dst1//:/}
-  dst_fn=${dst_fn// /_}
-  clean=$(clean_filename "${dst_fn}_${manuf}_${model}")
+  dst_fn=${dst_fn// /_}		#20130713_221330
+  clean=$(clean_filename "${dst_fn}_${model,,}_${filename,,}")
 
   if [ -z "$model" ]; then model="unknown"; fi
   
@@ -43,8 +50,8 @@ for i ; do
   if [ -z "$dst2" ] || [ -z "$model" ] || [ -z "$manuf" ]; then echo "skipping $i"; continue; fi
 
   #check if file already exists and increment if needed
-  old_filename="$dest/$dst_dn/$clean.jpg" 
-  new_filename="$dest/$dst_dn/$clean.jpg" 
+  old_filename="$dest/$dst_dn/$clean" 
+  new_filename="$dest/$dst_dn/$clean" 
   #inc=0
   #while [ -f $new_filename ]; do 
   #  inc=$((inc+1)) 
