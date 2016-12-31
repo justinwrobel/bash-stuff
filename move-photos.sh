@@ -2,6 +2,7 @@
 # This script will move jpgs in the current directory 
 # to year/month/day/$filename directory
 #TODO doc invokation
+# .../move-photos.sh */* . # move the files from sub dirs using . as a destination
 #0x010f - Manufacturer 
 #0x0110 - Model
 #0x9003 - Date and Time
@@ -14,13 +15,12 @@ clean_filename(){
 }
 
 remove_img(){
-  f=$(basename $1)
+  f=$(basename "$1")
   f=${f,,}
   echo ${f//img_/}
 }
 
 dest="${!#}"
-
 
 for i ; do 
 
@@ -36,13 +36,19 @@ for i ; do
   if [ -z "$dst1" ]; then dst1=$(exif -t 0x0132 -m $i); fi 
 
   filename=$(remove_img "$i") 
+  extension="${filename##*.}"
 
   #chop/clean the date up
   dst2=${dst1:0:7} 		#2013:07
   dst_dn=${dst2//://}
   dst_fn=${dst1//:/}
   dst_fn=${dst_fn// /_}		#20130713_221330
+
   clean=$(clean_filename "${dst_fn}_${model,,}_${filename,,}")
+  old_clean=$(clean_filename "${dst_fn}_${manuf}_${model}.${extension}")
+  if [ "$i" == "$old_clean" ]; then 
+     clean=$(clean_filename "${dst_fn}_${model,,}.${extension}")
+  fi
 
   if [ -z "$model" ]; then model="unknown"; fi
   
