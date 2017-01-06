@@ -20,6 +20,12 @@ remove_img(){
   echo ${f//img_/}
 }
 
+read_tag(){
+  r=$(exif -d -t $1 -m "$2" 2> /dev/null | tail -n 1)
+  echo $r
+}
+
+
 dest="${!#}"
 
 for i ; do 
@@ -28,12 +34,13 @@ for i ; do
   if [[ "${i,,}" != *"jpg" ]] ; then echo "$i isn't jpg. skipping"; continue; fi
 
   #have defaults for everything aside from dst1
-  manuf=$(exif -t 0x010f -m "$i") 	#2
-  model=$(exif -t 0x0110 -m "$i") 	#
-  dst1=$(exif -t 0x9003 -m "$i") 	#2013:07:17 22:28:06
+  manuf=$(read_tag 0x010f "$i") 	#2
+  model=$(read_tag 0x0110 "$i") 	#
+  if [ -z "$model" ]; then model="unknown"; fi
+  dst1=$(read_tag 0x9003 "$i") 	#2013:07:17 22:28:06
 
   #if 0x9003 didn't have anything try 0x0132
-  if [ -z "$dst1" ]; then dst1=$(exif -t 0x0132 -m $i); fi 
+  if [ -z "$dst1" ]; then dst1=$(read_tag 0x0132 "$i"); fi 
 
   filename=$(remove_img "$i") 
   extension="${filename##*.}"
@@ -49,11 +56,8 @@ for i ; do
   if [ "$i" == "$old_clean" ]; then 
      clean=$(clean_filename "${dst_fn}_${model,,}.${extension}")
   fi
-
-  if [ -z "$model" ]; then model="unknown"; fi
   
-  #skip if something is missing
-  if [ -z "$dst2" ] || [ -z "$model" ] || [ -z "$manuf" ]; then echo "skipping $i"; continue; fi
+  if [ -z "$dst2" ] || [ -z "$model" ] ; then echo "something is missing. skipping $i"; continue; fi
 
   #check if file already exists and increment if needed
   old_filename="$dest/$dst_dn/$clean" 
