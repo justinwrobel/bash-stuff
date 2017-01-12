@@ -36,7 +36,7 @@ for i; do
        read last_date
      fi
      #increment last_date
-     td=$(date +"%s" -d "$last_date")
+     td=$(date +"%s" -d "$last_date") #read into epoch seconds
      td=$(($td+5))
      last_date=$(date +"%Y-%m-%d %H:%M:%S" -d "@$td")
      echo "fixing date on $i to $last_date"

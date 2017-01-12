@@ -8,6 +8,7 @@ read_tag(){
   r=$(exif -d -t $1 -m "$2" 2> /dev/null | tail -n 1)
   echo $r
 }
+
 exit_code=0
 for i; do
 

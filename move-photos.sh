@@ -7,6 +7,10 @@
 #0x0110 - Model
 #0x9003 - Date and Time
 #0x0132 - Date and Time (old)
+#Sources
+# http://wiki.bash-hackers.org/scripting/posparams
+# https://boredwookie.net/blog/m/bash-101-part-5-regular-expressions-in-conditional-statements
+# http://stackoverflow.com/a/2439775/792789
 
 clean_filename(){
   f=${1//[^A-Za-z0-9\-\.]/_}
@@ -25,31 +29,48 @@ read_tag(){
   echo $r
 }
 
+if [[ $# < 1 ]] ; then echo "missing dest"; exit 1; fi
 
-dest="${!#}"
+dest="${!#}" #get last parameter
 
 for i ; do 
 
   if [[ $i == $dest ]] ; then continue; fi
+#${i,,} convert to lower case
   if [[ "${i,,}" != *"jpg" ]] ; then echo "$i isn't jpg. skipping"; continue; fi
 
   #have defaults for everything aside from dst1
   manuf=$(read_tag 0x010f "$i") 	#2
   model=$(read_tag 0x0110 "$i") 	#
-  if [ -z "$model" ]; then model="unknown"; fi
+  if [ -z "$model" ] || [[ $model =~ "ExifData" ]]; then model="unknown"; fi
   dst1=$(read_tag 0x9003 "$i") 	#2013:07:17 22:28:06
 
-  #if 0x9003 didn't have anything try 0x0132
-  if [ -z "$dst1" ]; then dst1=$(read_tag 0x0132 "$i"); fi 
+  datetime_pattern="([0-9]{4})[:-]([0-9]{2})[:-]([0-9]{2})\ ([0-9]{2})[:-]([0-9]{2})[:-]([0-9]{2})"
+
+  #if dst1 isn't valid date time
+  if [[ ! $dst1 =~ $datetime_pattern ]] ; then 
+    dst1=$(read_tag 0x0132 "$i");
+    if [[ ! $dst1 =~ $datetime_pattern ]] || false ; then 
+      echo "Invalid datetime detected. skipping $i."
+      continue 
+    fi
+  fi 
+
+  if [ -z "$model" ] ; then echo "model is missing. skipping $i"; continue; fi
+  if [[ ${#BASH_REMATCH[@]} < 7 ]]; then echo "datetime is missing. skipping $i"; continue; fi
+  year=${BASH_REMATCH[1]}
+  month=${BASH_REMATCH[2]}
+  day=${BASH_REMATCH[3]}
+  hour=${BASH_REMATCH[4]}
+  min=${BASH_REMATCH[5]}
+  sec=${BASH_REMATCH[6]}
 
   filename=$(remove_img "$i") 
   extension="${filename##*.}"
 
   #chop/clean the date up
-  dst2=${dst1:0:7} 		#2013:07
-  dst_dn=${dst2//://}
-  dst_fn=${dst1//:/}
-  dst_fn=${dst_fn// /_}		#20130713_221330
+  dst_dn="${year}/${month}"
+  dst_fn="$year$month${day}_$hour$min$sec" #20130713_221330
 
   clean=$(clean_filename "${dst_fn}_${model,,}_${filename,,}")
   old_clean=$(clean_filename "${dst_fn}_${manuf}_${model}.${extension}")
@@ -57,21 +78,22 @@ for i ; do
      clean=$(clean_filename "${dst_fn}_${model,,}.${extension}")
   fi
   
-  if [ -z "$dst2" ] || [ -z "$model" ] ; then echo "something is missing. skipping $i"; continue; fi
 
   #check if file already exists and increment if needed
   old_filename="$dest/$dst_dn/$clean" 
-  new_filename="$dest/$dst_dn/$clean" 
+  new_filepath="$dest/$dst_dn/$clean" 
+  #new_filepath="$dest/$dst_dn/${clean^^}" 
   #inc=0
-  #while [ -f $new_filename ]; do 
+  #while [ -f $new_filepath ]; do 
   #  inc=$((inc+1)) 
-  #  new_filename="$old_filename-$inc.jpg"
+  #  new_filepath="$old_filename-$inc.jpg"
   #done
-  #if [ $inc -gt 0 ]; then echo $new_filename was created due to conflict; fi
+  #if [ $inc -gt 0 ]; then echo $new_filepath was created due to conflict; fi
 
-  if [ -f $new_filename ] ; then
-    echo $new_filename already exists. Skipping.
+  if [ -f "$new_filepath" ] ; then
+    echo $new_filepath already exists. Skipping.
   else
-    mkdir -p "$dest/$dst_dn" && cp -i "$i" $new_filename 
+#    echo  2 $dst_dn  4 $new_filepath
+    mkdir -p "$dest/$dst_dn" && cp -i "$i" "$new_filepath" 
   fi
 done
