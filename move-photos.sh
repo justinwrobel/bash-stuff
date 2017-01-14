@@ -65,35 +65,46 @@ for i ; do
   min=${BASH_REMATCH[5]}
   sec=${BASH_REMATCH[6]}
 
-  filename=$(remove_img "$i") 
   extension="${filename##*.}"
 
   #chop/clean the date up
   dst_dn="${year}/${month}"
   dst_fn="$year$month${day}_$hour$min$sec" #20130713_221330
 
+  #remove img from filename
+  filename=$(remove_img "$i") 
+
+  #remove extra date pattern from filename 
+  [[ $filename =~ [-_]?[0-9]{8}[-_][0-9]{6}[-_]? ]] \
+   && filename=${filename/${BASH_REMATCH[0]}}
+
   clean=$(clean_filename "${dst_fn}_${model,,}_${filename,,}")
+  clean=${clean/_\./\.} # remove trailing _ 
   old_clean=$(clean_filename "${dst_fn}_${manuf}_${model}.${extension}")
   if [ "$i" == "$old_clean" ]; then 
      clean=$(clean_filename "${dst_fn}_${model,,}.${extension}")
   fi
-  
 
   #check if file already exists and increment if needed
-  old_filename="$dest/$dst_dn/$clean" 
+  old_filepath="$dest/$dst_dn/$clean" 
   new_filepath="$dest/$dst_dn/$clean" 
-  #new_filepath="$dest/$dst_dn/${clean^^}" 
-  #inc=0
-  #while [ -f $new_filepath ]; do 
-  #  inc=$((inc+1)) 
-  #  new_filepath="$old_filename-$inc.jpg"
-  #done
-  #if [ $inc -gt 0 ]; then echo $new_filepath was created due to conflict; fi
+  if [ -f $new_filepath ]; then
+     echo "Error while processing $i. $new_filepath already exists!"
+     inc=0
+     #replace .jpg with $inc.jpg 
+     while [ -f $new_filepath ]; do 
+       inc=$((inc+1)) 
+       new_filepath=${old_filepath/\.jpg/-$inc\.jpg}
+     done
+
+  fi
+
 
   if [ -f "$new_filepath" ] ; then
     echo $new_filepath already exists. Skipping.
   else
-#    echo  2 $dst_dn  4 $new_filepath
-    mkdir -p "$dest/$dst_dn" && cp -i "$i" "$new_filepath" 
+#    echo  $new_filepath
+#    mkdir -p "$dest/$dst_dn" && cp -i "$i" "$new_filepath" #copy
+    mkdir -p "$dest/$dst_dn" && mv -i "$i" "$new_filepath" #move 
   fi
 done
