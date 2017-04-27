@@ -32,7 +32,7 @@ for i; do
   if [[ $meta_date == *"ExifLoader"* ]]; then 
      echo "$i is missing meta_date"; 
      if [ -z "$last_date" ]; then 
-       echo "last_date isn't set. Please set or abort."
+       echo "last_date isn't set. Please set or abort. e.g., 2016-12-23 00:00:00"
        read last_date
      fi
      #increment last_date
