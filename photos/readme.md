@@ -12,7 +12,7 @@ Although, it may drop the $orgfilename if it resembles the date. Here are some e
  * `20170101_015336_lg-h811_hdr.jpg`
  * `20170905_180840_nexus_5x.jpg`
 
-This script will also move the photos in year/month directories. 
+This script will organize the photos into year/month directories. For example, 
 
  * 2017/01
  * 2016/11
