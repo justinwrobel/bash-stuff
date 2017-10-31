@@ -2,7 +2,7 @@
 
 This is a collection of scripts to make photo management a little easier. 
 
-Running `./run-move-photos.sh` will move and rename photos from the $src directory to the $$dst directory. It will rename the images based on the following naming scheme:
+Running `./run-move-photos.sh` will move and rename photos from the $src directory to the $dst directory. It will rename the images based on the following naming scheme:
 
  * `$date_$model_$orgfilename.$ext`
 
@@ -17,7 +17,7 @@ This script will organize the photos into year/month directories. For example,
  * 2017/01
  * 2016/11
 
-## Dependancies
+## Dependencies
  * exif - command line front-end to libexif
 
 ```
