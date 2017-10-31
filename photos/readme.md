@@ -16,3 +16,10 @@ This script will organize the photos into year/month directories. For example,
 
  * 2017/01
  * 2016/11
+
+## Dependancies
+ * exif - command line front-end to libexif
+
+```
+yum install exif
+```
