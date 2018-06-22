@@ -89,7 +89,7 @@ for i ; do
   old_filepath="$dest/$dst_dn/$clean" 
   new_filepath="$dest/$dst_dn/$clean" 
   if [ -f $new_filepath ]; then
-     echo "Error while processing $i. $new_filepath already exists!"
+     echo "Error while processing $i. $new_filepath already exists! Adding an increment."
      inc=0
      #replace .jpg with $inc.jpg 
      while [ -f $new_filepath ]; do 
@@ -98,7 +98,6 @@ for i ; do
      done
 
   fi
-
 
   if [ -f "$new_filepath" ] ; then
     echo $new_filepath already exists. Skipping.
