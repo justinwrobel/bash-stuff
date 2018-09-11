@@ -24,7 +24,7 @@ def process(filename):
         os.makedirs(dup_dir)
 
     with open(f'{dup_dir}/{img.signature}', "a") as myfile:
-        myfile.write(filename)
+        myfile.write(f'file://{filename}')
         myfile.write('\n')
 
 if len(sys.argv) > 1:
