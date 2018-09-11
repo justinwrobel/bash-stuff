@@ -33,3 +33,9 @@ else:
     for line in sys.stdin:
         process(line.rstrip())
 
+### Resouces
+# - https://stackoverflow.com/questions/3383892/is-it-possible-to-detect-duplicate-image-files/52249882#52249882
+# - https://stackoverflow.com/questions/1274405/how-to-create-new-folder#1274465
+# - https://stackoverflow.com/questions/4028904/how-to-get-the-home-directory-in-python#4028943
+# - https://stackoverflow.com/questions/5423381/checking-if-sys-argvx-is-defined#5423400
+# - https://www.tutorialspoint.com/python/python_functions.htm
