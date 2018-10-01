@@ -12,20 +12,25 @@ from pathlib import Path
 # https://stackoverflow.com/a/52249882/792789
 def process(filename):
     img = Image(filename=filename) 
+    added_filename = f'file://{filename}'
 
     #TODO add debug mode
-    #    print(filename)
-    #    print(img.signature)
-    # TODO read file and add filenames to a dict 
-    # TODO only write if missing
     home = str(Path.home())
     dup_dir = f'{home}/dups'
+    dup_sig = f'{dup_dir}/{img.signature}'
     if not os.path.exists(dup_dir):
         os.makedirs(dup_dir)
 
-    with open(f'{dup_dir}/{img.signature}', "a") as myfile:
-        myfile.write(f'file://{filename}')
-        myfile.write('\n')
+    already_added = False
+    if os.path.isfile(dup_sig):
+        with open(dup_sig, "r") as f:
+            for line in f:
+                already_added = line.strip() == added_filename
+
+    if not already_added:
+        with open(dup_sig, "a") as f:
+            f.write(added_filename)
+            f.write('\n')
 
 if len(sys.argv) > 1:
     process(sys.argv[1])
