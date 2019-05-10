@@ -1,0 +1,45 @@
+#:kivy 1.0
+#:import kivy kivy
+#:import win kivy.core.window
+<Controller>:
+    info_box: info_box
+    images_box: images_box
+    images_compare_box: images_compare_box
+    delete_button: delete_button
+    BoxLayout:
+        BoxLayout:
+            orientation: 'vertical'
+            row_default_height: '48dp'
+            ScrollView:
+                size: self.size
+                GridLayout:
+                    id: images_box
+                    size_hint_y: None
+                    height: self.minimum_height
+                    row_default_height: '48dp'
+                    padding: 10, 10
+                    spacing: 10, 10
+                    cols: 1
+
+            BoxLayout:
+                orientation: 'vertical'
+                Label:
+                    id: info_box
+                    text: 'hi!'
+                Button:
+                    id: delete_button
+                    text: 'Button delete'
+
+        BoxLayout:
+            orientation: 'horizontal'
+            row_default_height: '48dp'
+            ScrollView:
+                size: self.size
+                GridLayout:
+                    id: images_compare_box
+                    size_hint_y: None
+                    height: self.minimum_height
+                    row_default_height: '200dp'
+                    padding: 10, 10
+                    spacing: 10, 10
+                    cols: 3
