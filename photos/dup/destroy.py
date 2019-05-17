@@ -64,6 +64,7 @@ class PictureRepo():
             decoded = TAGS.get(tag, tag)
             ret[decoded] = value
 
+        #print ret
         return ret
 
 
@@ -116,10 +117,10 @@ class Controller(FloatLayout):
     def display_meta(self, instance, exif):
         self.selected_image = exif
         self.info_box.text = "\n".join([
-            exif['JWFiledir'],
+            exif['JWFiledir'][-40:], # TODO show last x chars
             exif['JWFilebase'],
             exif['DateTimeOriginal'],
-            exif['Make'], exif['Model'],
+            exif.get('Make', ''), exif.get('Model', ''),
             exif['JWResolution']])
 
 

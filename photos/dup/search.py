@@ -12,6 +12,7 @@ from pathlib import Path
 # https://stackoverflow.com/a/52249882/792789
 def process(filename):
     _filename = os.path.abspath(filename)
+    # TODO is really an image?
     img = Image(filename=_filename) 
     added_filename = f'file://{_filename}'
 
