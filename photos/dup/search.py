@@ -11,8 +11,9 @@ from pathlib import Path
 
 # https://stackoverflow.com/a/52249882/792789
 def process(filename):
-    img = Image(filename=filename) 
-    added_filename = f'file://{filename}'
+    _filename = os.path.abspath(filename)
+    img = Image(filename=_filename) 
+    added_filename = f'file://{_filename}'
 
     #TODO add debug mode
     home = str(Path.home())
