@@ -5,7 +5,7 @@ kivy.require('1.0.6')
 import os
 from glob import glob
 from random import randint
-from os.path import join, dirname
+from os.path import join, isfile, dirname
 
 from kivy.app import App
 from kivy.uix.image import Image
@@ -32,7 +32,8 @@ class PictureRepo():
         return i + 1
 
     def get_all_signatures(self):
-        return os.listdir(self.DUP_DIR)
+        # https://stackoverflow.com/a/3207973/792789
+        return [f for f in os.listdir(self.DUP_DIR) if isfile(join(self.DUP_DIR, f))]
 
     def get_signatures_with_dups(self):
         return filter(self.filter_signatures_with_dups, self.get_all_signatures())
