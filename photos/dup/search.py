@@ -13,26 +13,31 @@ from pathlib import Path
 def process(filename):
     _filename = os.path.abspath(filename)
     # TODO is really an image?
-    img = Image(filename=_filename) 
-    added_filename = f'file://{_filename}'
+    try:
+        img = Image(filename=_filename) 
+        added_filename = f'file://{_filename}'
 
-    #TODO add debug mode
-    home = str(Path.home())
-    dup_dir = f'{home}/dups'
-    dup_sig = f'{dup_dir}/{img.signature}'
-    if not os.path.exists(dup_dir):
-        os.makedirs(dup_dir)
+        #TODO add debug mode
+        home = str(Path.home())
+        dup_dir = f'{home}/dups'
+        dup_sig = f'{dup_dir}/{img.signature}'
+        if not os.path.exists(dup_dir):
+            os.makedirs(dup_dir)
 
-    already_added = False
-    if os.path.isfile(dup_sig):
-        with open(dup_sig, "r") as f:
-            for line in f:
-                already_added = line.strip() == added_filename
+        already_added = False
+        if os.path.isfile(dup_sig):
+            with open(dup_sig, "r") as f:
+                for line in f:
+                    already_added = line.strip() == added_filename
 
-    if not already_added:
-        with open(dup_sig, "a") as f:
-            f.write(added_filename)
-            f.write('\n')
+        if not already_added:
+            with open(dup_sig, "a") as f:
+                f.write(added_filename)
+                f.write('\n')
+    except:
+        e = sys.exc_info()[0]
+        print(f'Error while processing {filename} {e}')
+
 
 if len(sys.argv) > 1:
     process(sys.argv[1])
