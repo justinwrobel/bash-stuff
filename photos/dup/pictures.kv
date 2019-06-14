@@ -23,9 +23,12 @@
 
             BoxLayout:
                 orientation: 'vertical'
-                Label:
+                TextInput:
                     id: info_box
                     text: 'hi!'
+                    text_size: self.size
+                    halign: 'left'
+                    valign: 'top'
                 Button:
                     id: delete_button
                     text: 'Button delete'
