@@ -8,6 +8,7 @@ from random import randint
 from os.path import join, isfile, dirname
 
 from kivy.app import App
+from kivy.core.window import Window
 from kivy.uix.image import Image
 from kivy.logger import Logger
 from kivy.properties import ObjectProperty, StringProperty
@@ -90,11 +91,9 @@ class MyImage(Image):
 
     @property
     def exif(self):
-        print 'getting'
         if not self._exif:
             self._exif = self.pr.get_exif(self.source)
         return self._exif
-
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
@@ -113,19 +112,48 @@ class Controller(FloatLayout):
 
     def __init__(self, **kwargs):
         super(Controller, self).__init__(**kwargs)
+        self.keyboard = Window.request_keyboard(self.keyboard_closed, self)
+        self.keyboard.bind(on_key_down=self.on_keyboard_down)
+
         sigs = self.pr.get_signatures_with_dups()
         print len(sigs)
         for x in sigs:
-            btn = Button(id=x, text=x[0:10])
-            btn.bind(on_press=self.select_sig)
-            self.images_box.add_widget(btn)
+            sigBtn = Button(id=x, text=x[0:10])
+            sigBtn.bind(on_press=self.select_sig)
+            self.images_box.add_widget(sigBtn)
 
         self.delete_button.bind(on_press=self.delete_selected)
+        first_image = len(self.images_box.children) - 1
+        self.select_sig(self.images_box.children[first_image])
+
+    def keyboard_closed(self):
+        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+        self._keyboard = None
+
+    def on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        # up & down selects sigs
+        if keycode[1] == 'up' or keycode[1] == 'k' :
+            self.select_sig(self.images_box.children[self.get_selected_sig_idx() + 1])
+
+        if keycode[1] == 'down' or keycode[1] == 'j':
+            self.select_sig(self.images_box.children[self.get_selected_sig_idx() - 1])
+
+        if keycode[1] == 'left' or keycode[1] == 'h':
+            print(self.selected_image)
+
+        if keycode[1] == 'right' or keycode[1] == 'l':
+            print "hello"
+
+        # left & right selects images
+    def get_selected_sig_idx(self):
+        for idx, x in enumerate(self.images_box.children):
+            if(x.id == self.selected_sig):
+                return idx
+
+        return len(self.images_box.children) - 1
 
     def select_sig(self, instance):
         self.update_images(instance.id)
-        #print 'select first image' + self.images_compare_box.children[0]
-        # self.display_meta(self.images_compare_box.children[1], self.images_compare_box.children[1].exif)
         self.select_image(self.images_compare_box.children[0], '')
 
     def update_images(self, sig_id):
@@ -143,13 +171,10 @@ class Controller(FloatLayout):
         self.update_images(self.selected_sig)
 
     def select_image(self, instance, event):
-        print(instance)
-
         if(instance.exif):
             self.display_meta(instance, instance.exif)
 
     def display_meta(self, instance, exif):
-        print 'display_meta'
         self.selected_image = exif
         self.info_box.text = "\n".join([
             exif['JWFiledir'],
