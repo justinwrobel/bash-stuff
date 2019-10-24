@@ -10,6 +10,7 @@ from os.path import join, isfile, dirname
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.uix.image import Image
+from kivy.lang import Builder
 from kivy.logger import Logger
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.uix.button import Button
@@ -18,6 +19,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.scatter import Scatter
 from kivy.properties import DictProperty
+from kivy.properties import ListProperty
 
 from PIL import Image as PilImage
 from PIL.ExifTags import TAGS
@@ -84,9 +86,19 @@ class PictureRepo():
         os.rename(sig_file_tmp, sig_file)
 
 
+Builder.load_string("""
+<MyImage>:
+  canvas.before:
+    Color:
+      rgba: self.bcolor
+    Rectangle:
+      pos: self.pos
+      size: self.size
+""")
 
 class MyImage(Image):
     pr = PictureRepo()
+    bcolor = ListProperty([0,0,0,1])
     _exif = DictProperty()
 
     @property
@@ -107,7 +119,8 @@ class Controller(FloatLayout):
     images_compare_box = GridLayout()
     info_box = ObjectProperty(None)
     delete_button = ObjectProperty(None)
-    selected_image = DictProperty()
+    selected_image_meta = DictProperty()
+    selected_image = None
     selected_sig = None
 
     def __init__(self, **kwargs):
@@ -131,7 +144,6 @@ class Controller(FloatLayout):
         self._keyboard = None
 
     def on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        # up & down selects sigs
         if keycode[1] == 'up' or keycode[1] == 'k' :
             self.select_sig(self.images_box.children[self.get_selected_sig_idx() + 1])
 
@@ -139,17 +151,25 @@ class Controller(FloatLayout):
             self.select_sig(self.images_box.children[self.get_selected_sig_idx() - 1])
 
         if keycode[1] == 'left' or keycode[1] == 'h':
-            print(self.selected_image)
+            self.select_image(self.images_compare_box.children[self.get_selected_image_idx() + 1], '')
 
         if keycode[1] == 'right' or keycode[1] == 'l':
-            print "hello"
+            self.select_image(self.images_compare_box.children[self.get_selected_image_idx() - 1], '')
 
-        # left & right selects images
     def get_selected_sig_idx(self):
         for idx, x in enumerate(self.images_box.children):
             if(x.id == self.selected_sig):
                 return idx
 
+        return len(self.images_box.children) - 1
+
+    def get_selected_image_idx(self):
+        for idx, x in enumerate(self.images_compare_box.children):
+            if(x == self.selected_image):
+                print idx
+                return idx
+
+        print 'GO'
         return len(self.images_box.children) - 1
 
     def select_sig(self, instance):
@@ -165,17 +185,23 @@ class Controller(FloatLayout):
             #im.bind(exif=self.display_meta)
             self.images_compare_box.add_widget(im)
 
-
     def delete_selected(self, instance):
-        self.pr.remove_filename(self.selected_sig, self.selected_image['JWFilename'])
+        self.pr.remove_filename(self.selected_sig, self.selected_image_meta['JWFilename'])
         self.update_images(self.selected_sig)
 
     def select_image(self, instance, event):
+        for idx, x in enumerate(self.images_compare_box.children):
+            x.bcolor = [0,0,0,1]
+
+        print 'get all images_compare_box widgets, unselect all'
+        print instance.exif.JWFilebase
         if(instance.exif):
+            instance.bcolor = [1,0,0,1]
+            self.selected_image = instance
             self.display_meta(instance, instance.exif)
 
     def display_meta(self, instance, exif):
-        self.selected_image = exif
+        self.selected_image_meta = exif
         self.info_box.text = "\n".join([
             exif['JWFiledir'],
             exif['JWFilebase'],
