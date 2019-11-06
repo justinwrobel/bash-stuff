@@ -140,10 +140,16 @@ class Controller(FloatLayout):
         self.select_sig(self.images_box.children[first_image])
 
     def keyboard_closed(self):
-        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
-        self._keyboard = None
+        # TODO remove sigs where only 1 left
+        # TODO factor in dup detector
+        print self
+        #self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+        #self._keyboard = None
 
     def on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        if keycode[1] == 'delete':
+            self.delete_selected('instance')
+
         if keycode[1] == 'up' or keycode[1] == 'k' :
             self.select_sig(self.images_box.children[self.get_selected_sig_idx() + 1])
 
@@ -151,7 +157,9 @@ class Controller(FloatLayout):
             self.select_sig(self.images_box.children[self.get_selected_sig_idx() - 1])
 
         if keycode[1] == 'left' or keycode[1] == 'h':
-            self.select_image(self.images_compare_box.children[self.get_selected_image_idx() + 1], '')
+            a  = self.get_selected_image_idx() + 1
+            i =  0 if a >= len(self.images_compare_box.children) else a
+            self.select_image(self.images_compare_box.children[i], '')
 
         if keycode[1] == 'right' or keycode[1] == 'l':
             self.select_image(self.images_compare_box.children[self.get_selected_image_idx() - 1], '')
@@ -188,6 +196,9 @@ class Controller(FloatLayout):
     def delete_selected(self, instance):
         self.pr.remove_filename(self.selected_sig, self.selected_image_meta['JWFilename'])
         self.update_images(self.selected_sig)
+        a  = self.get_selected_image_idx() + 1
+        i =  0 if a >= len(self.images_compare_box.children) else a
+        self.select_image(self.images_compare_box.children[i], '')
 
     def select_image(self, instance, event):
         for idx, x in enumerate(self.images_compare_box.children):
