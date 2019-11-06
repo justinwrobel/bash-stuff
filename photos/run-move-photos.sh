@@ -13,6 +13,6 @@ command -v exif >/dev/null 2>&1 || { echo >&2 "I require exif but it's not insta
 [ ! -d "$src" ] && echo "$src not mounted" && exit 1
 [ ! -d "$dst" ] && echo "$dst not mounted" && exit 1
 
-find ${remote}multimedia/Pictures/drop/ -iname "*.jpg" -exec ./move-photos.sh {} ${remote}pictures/ \;
+find ${remote}multimedia/Pictures/drop/{Camera,Shannon} -iname "*.jpg" -exec ./move-photos.sh {} ${remote}pictures/ \;
 
 cd $here

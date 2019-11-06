@@ -25,7 +25,7 @@ remove_img(){
 }
 
 read_tag(){
-  r=$(exif -d -t $1 -m "$2" 2> /dev/null | tail -n 1)
+  r=$(exif -t $1 -m "$2" 2> /dev/null | tail -n 1)
   echo $r
 }
 
@@ -45,7 +45,7 @@ for i ; do
   if [ -z "$model" ] || [[ $model =~ "ExifData" ]]; then model="unknown"; fi
   dst1=$(read_tag 0x9003 "$i") 	#2013:07:17 22:28:06
 
-  datetime_pattern="([0-9]{4})[:-]([0-9]{2})[:-]([0-9]{2})\ ([0-9]{2})[:-]([0-9]{2})[:-]([0-9]{2})"
+  datetime_pattern="([0-9]{4})[:-]([0-9]{2})[:-]([0-9]{2}).([0-9]{2})[:-]([0-9]{2})[:-]([0-9]{2})"
 
   #if dst1 isn't valid date time
   if [[ ! $dst1 =~ $datetime_pattern ]] ; then 
