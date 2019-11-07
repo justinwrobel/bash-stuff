@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script will move jpgs in the current directory 
 # to year/month/day/$filename directory
-#TODO doc invokation
+#TODO doc invocation
 # .../move-photos.sh */* . # move the files from sub dirs using . as a destination
 #0x010f - Manufacturer 
 #0x0110 - Model
@@ -49,14 +49,15 @@ for i ; do
 
   #if dst1 isn't valid date time
   if [[ ! $dst1 =~ $datetime_pattern ]] ; then
-    dst1=$(read_tag 0x0132 "$i")
-    if [[ ! $dst1 =~ $datetime_pattern ]] || false ; then
-      echo "Invalid datetime detected. skipping $i."
+    dst2=$(read_tag 0x0132 "$i")
+    if [[ ! $dst2 =~ $datetime_pattern ]] || false ; then
+      echo "Invalid datetime detected ($dst1, $dst2). skipping $i."
       continue
     fi
   fi
 
   if [ -z "$model" ] ; then echo "model is missing. skipping $i"; continue; fi
+  # BASH_REMATCH has the results of the last =~ comparison
   if [[ ${#BASH_REMATCH[@]} < 7 ]]; then echo "datetime is missing. skipping $i"; continue; fi
   year=${BASH_REMATCH[1]}
   month=${BASH_REMATCH[2]}
