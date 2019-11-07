@@ -33,28 +33,28 @@ if [[ $# < 1 ]] ; then echo "missing dest"; exit 1; fi
 
 dest="${!#}" #get last parameter
 
-for i ; do 
+for i ; do
 
   if [[ $i == $dest ]] ; then continue; fi
-#${i,,} convert to lower case
+  #${i,,} convert to lower case
   if [[ "${i,,}" != *"jpg" ]] ; then echo "$i isn't jpg. skipping"; continue; fi
 
   #have defaults for everything aside from dst1
   manuf=$(read_tag 0x010f "$i") 	#2
   model=$(read_tag 0x0110 "$i") 	#
   if [ -z "$model" ] || [[ $model =~ "ExifData" ]]; then model="unknown"; fi
-  dst1=$(read_tag 0x9003 "$i") 	#2013:07:17 22:28:06
+  dst1=$(read_tag 0x9003 "$i") #2013:07:17 22:28:06, 2019-09-15T00:00:00Z
 
   datetime_pattern="([0-9]{4})[:-]([0-9]{2})[:-]([0-9]{2}).([0-9]{2})[:-]([0-9]{2})[:-]([0-9]{2})"
 
   #if dst1 isn't valid date time
-  if [[ ! $dst1 =~ $datetime_pattern ]] ; then 
-    dst1=$(read_tag 0x0132 "$i");
-    if [[ ! $dst1 =~ $datetime_pattern ]] || false ; then 
+  if [[ ! $dst1 =~ $datetime_pattern ]] ; then
+    dst1=$(read_tag 0x0132 "$i")
+    if [[ ! $dst1 =~ $datetime_pattern ]] || false ; then
       echo "Invalid datetime detected. skipping $i."
-      continue 
+      continue
     fi
-  fi 
+  fi
 
   if [ -z "$model" ] ; then echo "model is missing. skipping $i"; continue; fi
   if [[ ${#BASH_REMATCH[@]} < 7 ]]; then echo "datetime is missing. skipping $i"; continue; fi
@@ -72,14 +72,14 @@ for i ; do
   dst_fn="$year$month${day}_$hour$min$sec" #20130713_221330
 
   #remove img from filename
-  filename=$(remove_img "$i") 
+  filename=$(remove_img "$i")
 
-  #remove extra date pattern from filename 
+  #remove extra date pattern from filename
   [[ $filename =~ [-_]?[0-9]{8}[-_][0-9]{6}[-_]? ]] \
    && filename=${filename/${BASH_REMATCH[0]}}
 
   clean=$(clean_filename "${dst_fn}_${model,,}_${filename,,}")
-  clean=${clean/_\./\.} # remove trailing _ 
+  clean=${clean/_\./\.} # remove trailing _
   old_clean=$(clean_filename "${dst_fn}_${manuf}_${model}.${extension}")
   if [ "$i" == "$old_clean" ]; then 
      clean=$(clean_filename "${dst_fn}_${model,,}.${extension}")
