@@ -23,16 +23,16 @@ from kivy.properties import ListProperty
 
 from PIL import Image as PilImage
 from PIL.ExifTags import TAGS
+import exifread
 
 
 class PictureRepo():
     DUP_DIR = os.path.expanduser('~/dups/')
 
     def file_len(self, fname):
+        print fname
         with open(fname) as f:
-            for i, l in enumerate(f):
-                pass
-        return i + 1
+            return sum(1 for i in f)
 
     def get_all_signatures(self):
         # https://stackoverflow.com/a/3207973/792789
@@ -55,28 +55,28 @@ class PictureRepo():
 
     # https://www.blog.pythonlibrary.org/2010/03/28/getting-photo-metadata-exif-using-python/
     def get_exif(self, filename):
+        print(filename)
         ret = {}
         i = PilImage.open(filename)
         ret['JWResolution'] = "{}x{}".format(i.size[1], i.size[0])
         ret['JWFilename'] = filename
         ret['JWFilebase'] = os.path.basename(filename)
         ret['JWFiledir'] = os.path.dirname(filename)
-        info = i._getexif()
+        tags = exifread.process_file(open(filename, 'rb'))
 
-        for tag, value in info.items():
+        for tag, value in tags.iteritems():
             decoded = TAGS.get(tag, tag)
             ret[decoded] = value
 
-        #print ret
         return ret
 
     def remove_filename(self, sig, filename):
-        print 'deleting image' + filename
+        print('deleting image' + filename)
         os.remove(filename)
 
         sig_file = self.DUP_DIR + sig
         sig_file_tmp = self.DUP_DIR + sig + '.tmp'
-        print 'removing filename from ' + sig_file
+        print('removing filename from ' + sig_file)
         with open(sig_file, 'r') as f1:
             with open(self.DUP_DIR + sig + '.tmp', 'w') as f2:
                 for line in f1:
@@ -129,7 +129,8 @@ class Controller(FloatLayout):
         self.keyboard.bind(on_key_down=self.on_keyboard_down)
 
         sigs = self.pr.get_signatures_with_dups()
-        print len(sigs)
+        print(len(sigs))
+
         for x in sigs:
             sigBtn = Button(id=x, text=x[0:10])
             sigBtn.bind(on_press=self.select_sig)
@@ -142,12 +143,12 @@ class Controller(FloatLayout):
     def keyboard_closed(self):
         # TODO remove sigs where only 1 left
         # TODO factor in dup detector
-        print self
+        print(self)
         #self._keyboard.unbind(on_key_down=self._on_keyboard_down)
         #self._keyboard = None
 
     def on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        if keycode[1] == 'delete':
+        if keycode[1] == 'delete' or keycode[1] == 'x':
             self.delete_selected('instance')
 
         if keycode[1] == 'up' or keycode[1] == 'k' :
@@ -174,13 +175,12 @@ class Controller(FloatLayout):
     def get_selected_image_idx(self):
         for idx, x in enumerate(self.images_compare_box.children):
             if(x == self.selected_image):
-                print idx
                 return idx
 
-        print 'GO'
         return len(self.images_box.children) - 1
 
     def select_sig(self, instance):
+        print(instance.id)
         self.update_images(instance.id)
         self.select_image(self.images_compare_box.children[0], '')
 
@@ -204,8 +204,6 @@ class Controller(FloatLayout):
         for idx, x in enumerate(self.images_compare_box.children):
             x.bcolor = [0,0,0,1]
 
-        print 'get all images_compare_box widgets, unselect all'
-        print instance.exif.JWFilebase
         if(instance.exif):
             instance.bcolor = [1,0,0,1]
             self.selected_image = instance
@@ -213,12 +211,12 @@ class Controller(FloatLayout):
 
     def display_meta(self, instance, exif):
         self.selected_image_meta = exif
-        self.info_box.text = "\n".join([
+        self.info_box.text = '\n'.join(map(str, [
             exif['JWFiledir'],
             exif['JWFilebase'],
-            exif['DateTimeOriginal'],
+            exif.get('DateTimeOriginal', exif.get('EXIF DateTimeOriginal')),
             exif.get('Make', ''), exif.get('Model', ''),
-            exif['JWResolution']])
+            exif['JWResolution']]))
 
 
 class PicturesApp(App):
