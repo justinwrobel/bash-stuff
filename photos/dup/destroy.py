@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import kivy
 kivy.require('1.0.6')
 
@@ -30,7 +30,7 @@ class PictureRepo():
     DUP_DIR = os.path.expanduser('~/dups/')
 
     def file_len(self, fname):
-        print fname
+        print(fname)
         with open(fname) as f:
             return sum(1 for i in f)
 
@@ -39,10 +39,7 @@ class PictureRepo():
         return [f for f in os.listdir(self.DUP_DIR) if isfile(join(self.DUP_DIR, f))]
 
     def get_signatures_with_dups(self):
-        return filter(self.filter_signatures_with_dups, self.get_all_signatures())
-
-    def filter_signatures_with_dups(self, fname):
-        return self.file_len(self.DUP_DIR + fname) > 1
+        return [f for f in self.get_all_signatures() if self.file_len(self.DUP_DIR + f) > 1]
 
     def get_filename(self, signature):
         filenames = []
@@ -64,7 +61,7 @@ class PictureRepo():
         ret['JWFiledir'] = os.path.dirname(filename)
         tags = exifread.process_file(open(filename, 'rb'))
 
-        for tag, value in tags.iteritems():
+        for tag, value in tags.items():
             decoded = TAGS.get(tag, tag)
             ret[decoded] = value
 
