@@ -15,7 +15,7 @@
 clean_filename(){
   f=${1//[^A-Za-z0-9\-\.]/_}
   f=${f,,}
-  echo $f 
+  echo $f
 }
 
 remove_img(){
@@ -89,15 +89,14 @@ for i ; do
   #check if file already exists and increment if needed
   old_filepath="$dest/$dst_dn/$clean" 
   new_filepath="$dest/$dst_dn/$clean" 
-  if [ -f $new_filepath ]; then
+  if [ -f "$new_filepath" ]; then
      echo "Error while processing $i. $new_filepath already exists! Adding an increment."
      inc=0
      #replace .jpg with $inc.jpg 
-     while [ -f $new_filepath ]; do 
+     while [ -f "$new_filepath" ]; do 
        inc=$((inc+1)) 
-       new_filepath=${old_filepath/\.jpg/-$inc\.jpg}
+       new_filepath="${old_filepath/\.jpg/-$inc\.jpg}"
      done
-
   fi
 
   if [ -f "$new_filepath" ] ; then
@@ -105,6 +104,9 @@ for i ; do
   else
 #    echo  $new_filepath
 #    mkdir -p "$dest/$dst_dn" && cp -i "$i" "$new_filepath" #copy
-    mkdir -p "$dest/$dst_dn" && mv -i "$i" "$new_filepath" #move 
+    mkdir -p "$dest/$dst_dn" \
+      && rsync -t "$i" "$new_filepath" \
+      && rm $i \
+      || echo "Issue processing $i"
   fi
 done
