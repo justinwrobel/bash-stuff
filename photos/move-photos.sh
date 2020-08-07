@@ -2,7 +2,7 @@
 # This script will move jpgs in the current directory 
 # to year/month/day/$filename directory
 # ./move-photos.sh $source $destination
-#0x010f - Manufacturer 
+#0x010f - Manufacturer
 #0x0110 - Model
 #0x9003 - Date and Time
 #0x0132 - Date and Time (old)
@@ -12,7 +12,7 @@
 # http://stackoverflow.com/a/2439775/792789
 
 clean_filename(){
-  f=${1//[^A-Za-z0-9\-\.]/_}
+  f=${1//[^A-Za-z0-9\-\.]/_} # replace invalid chars with underscores (_)
   f=${f,,}
   echo $f
 }
@@ -38,7 +38,26 @@ move(){
     || echo "$? Issue processing $src" && return 1
 }
 
-if [[ $# < 1 ]] ; then echo "missing dest"; exit 1; fi
+if [[ ${#} < 2 ]]; then
+  cat <<- EOF
+	NAME
+	  move-photos.sh
+	
+	SYNOPSIS
+	  move-photos.sh SRC DEST
+	  move-photos.sh SRC... DEST
+	
+	DESCRIPTION
+	  Move SRC to a date-based directory stucture in DST. The directory structure is based on either SRC's exif date tag, or filename.
+	
+	    move-photos.sh 20200202_131313.jpg foo
+	    move-photos.sh VID_20200202_131313.jpg foo
+	    move-photos.sh 223.jpg foo # `date -r 223.mp4 --iso-8601=sec` shows 2020-02-02T13:13:13-0600
+	    ./foo/2020/02/20200202_131313.jpg
+	
+	EOF
+exit 1
+fi
 
 dest="${!#}" #get last parameter
 
