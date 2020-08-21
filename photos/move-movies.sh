@@ -1,12 +1,13 @@
-#{mp4,3gp,mov}
-move(){
-  src=$1
-  dst=$2
-  mkdir -p "$(dirname $dst)" \
-    && rsync -t "$src" "$dst" \
-    && rm "$src" \
-    && return 0 \
-    || echo "$? Issue processing $src" && return 1
+#~!/bin/bash
+# Move SRC to a date-based directory stucture in DST. The directory structure is based on either SRC's name or last modified.
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source $DIR/common.sh
+
+remove_vid(){
+  f=$(basename "$1")
+  f=${f,,}
+  echo ${f//vid_/}
 }
 
 if [[ ${#} < 2 ]]; then
@@ -34,7 +35,6 @@ dest="${!#}" #get last parameter
 for src ; do
   if [[ $src == $dest ]] ; then continue; fi
   #${src,,} convert to lower case
-  echo "TODO other filetypes"
   if [[ "${src,,}" != *"mp4" ]] ; then echo "$src isn't mp4. skipping"; continue; fi
 
   # VID_20200614_170537921.mp4
@@ -54,7 +54,25 @@ for src ; do
   min=${BASH_REMATCH[5]}
   sec=${BASH_REMATCH[6]}
 
+  #remove img from filename
+  filename=$(remove_vid "$src")
+
+  #chop/clean the date up
+  dst_dn="${year}/${month}"
+  dst_fn="$year$month${day}_$hour$min$sec" #20130713_221330
+
+  # remove extra date pattern from filename
+  [[ $filename =~ [-_]?[0-9]{8}[-_][0-9]{6}[-_]? ]] \
+   && filename=${filename/${BASH_REMATCH[0]}}
+
+  clean=$(clean_filename "${dst_fn}-${filename,,}")
+  clean=${clean/_\./\.} # remove trailing _
+  clean=${clean}
+
+  new_filepath="$dest/$dst_dn/$clean"
+  echo $new_filepath
+
+  echo $(get_uniq_filename $new_filepath)
   echo "time $year $month $day $hour $min $sec"
-  echo "clean filename"
   echo "do move"
 done

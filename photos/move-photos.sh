@@ -11,11 +11,6 @@
 # https://boredwookie.net/blog/m/bash-101-part-5-regular-expressions-in-conditional-statements
 # http://stackoverflow.com/a/2439775/792789
 
-clean_filename(){
-  f=${1//[^A-Za-z0-9\-\.]/_} # replace invalid chars with underscores (_)
-  f=${f,,}
-  echo $f
-}
 
 remove_img(){
   f=$(basename "$1")
@@ -94,26 +89,22 @@ for src ; do
   min=${BASH_REMATCH[5]}
   sec=${BASH_REMATCH[6]}
 
-  extension="${filename##*.}"
-
   #chop/clean the date up
   dst_dn="${year}/${month}"
   dst_fn="$year$month${day}_$hour$min$sec" #20130713_221330
 
   #remove img from filename
   filename=$(remove_img "$src")
+  extension="${filename##*.}"
 
   #remove extra date pattern from filename
   [[ $filename =~ [-_]?[0-9]{8}[-_][0-9]{6}[-_]? ]] \
    && filename=${filename/${BASH_REMATCH[0]}}
 
-  clean=$(clean_filename "${dst_fn}_${model,,}_${filename,,}")
+  clean=$(clean_filename "${dst_fn}_${model,,}-${filename,,}")
   clean=${clean/_\./\.} # remove trailing _
-  old_clean=$(clean_filename "${dst_fn}_${manuf}_${model}.${extension}")
-  if [ "$src" == "$old_clean" ]; then 
-     clean=$(clean_filename "${dst_fn}_${model,,}.${extension}")
-  fi
 
+  # TODO Replace with common function
   #check if file already exists and increment if needed
   old_filepath="$dest/$dst_dn/$clean"
   new_filepath="$dest/$dst_dn/$clean"
@@ -130,7 +121,9 @@ for src ; do
   if [ -f "$new_filepath" ] ; then
     echo $new_filepath already exists. Skipping.
   else
+    echo $extension
+    echo $new_filepath
     # Retry from https://unix.stackexchange.com/a/82610/169986
-    for i in {1..5}; do move "$src" "$new_filepath" && break || sleep 1; done
+    # for i in {1..5}; do move "$src" "$new_filepath" && break || sleep 1; done
   fi
 done
