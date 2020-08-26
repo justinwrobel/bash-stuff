@@ -1,39 +1,33 @@
 #!/bin/bash
-# This script will move jpgs in the current directory 
-# to year/month/day/$filename directory
+# Move SRC to a date-based directory stucture in DST. The directory structure
+# is based on either SRC's exif date tag, or filename.
 # ./move-photos.sh $source $destination
-#0x010f - Manufacturer
-#0x0110 - Model
-#0x9003 - Date and Time
-#0x0132 - Date and Time (old)
-#Sources
+#
+#   0x010f - Manufacturer
+#   0x0110 - Model
+#   0x9003 - Date and Time
+#   0x0132 - Date and Time (old)
+#
+# Sources
 # http://wiki.bash-hackers.org/scripting/posparams
 # https://boredwookie.net/blog/m/bash-101-part-5-regular-expressions-in-conditional-statements
 # http://stackoverflow.com/a/2439775/792789
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source $DIR/common.sh
 
-remove_img(){
+remove_img() {
   f=$(basename "$1")
   f=${f,,}
   echo ${f//img_/}
 }
 
-read_tag(){
+read_tag() {
   r=$(exif -t $1 -m "$2" 2> /dev/null | tail -n 1)
   echo $r
 }
 
-move(){
-  src=$1
-  dst=$2
-  mkdir -p "$(dirname $dst)" \
-    && rsync -t "$src" "$dst" \
-    && rm "$src" \
-    && return 0 \
-    || echo "$? Issue processing $src" && return 1
-}
-
-if [[ ${#} < 2 ]]; then
+if (( ${#} < 2 )); then
   cat <<- EOF
 	NAME
 	  move-photos.sh
@@ -54,17 +48,16 @@ if [[ ${#} < 2 ]]; then
 exit 1
 fi
 
-dest="${!#}" #get last parameter
+dest="${!#}" # Get last parameter
 
 for src ; do
-
   if [[ $src == $dest ]] ; then continue; fi
-  #${src,,} convert to lower case
+  # ${src,,} convert to lower case
   if [[ "${src,,}" != *"jpg" ]] ; then echo "$src isn't jpg. skipping"; continue; fi
 
-  #have defaults for everything aside from dst1
-  manuf=$(read_tag 0x010f "$src") 	#2
-  model=$(read_tag 0x0110 "$src") 	#
+  # Have defaults for everything aside from dst1
+  manuf=$(read_tag 0x010f "$src")
+  model=$(read_tag 0x0110 "$src")
   if [ -z "$model" ] || [[ $model =~ "ExifData" ]]; then model="unknown"; fi
   dst1=$(read_tag 0x9003 "$src") #2013:07:17 22:28:06, 2019-09-15T00:00:00Z
 
@@ -89,41 +82,29 @@ for src ; do
   min=${BASH_REMATCH[5]}
   sec=${BASH_REMATCH[6]}
 
-  #chop/clean the date up
+  # Chop/clean the date up
   dst_dn="${year}/${month}"
   dst_fn="$year$month${day}_$hour$min$sec" #20130713_221330
 
-  #remove img from filename
+  # Remove img from filename
   filename=$(remove_img "$src")
   extension="${filename##*.}"
 
-  #remove extra date pattern from filename
+  # Remove extra date pattern from filename
   [[ $filename =~ [-_]?[0-9]{8}[-_][0-9]{6}[-_]? ]] \
    && filename=${filename/${BASH_REMATCH[0]}}
 
   clean=$(clean_filename "${dst_fn}_${model,,}-${filename,,}")
-  clean=${clean/_\./\.} # remove trailing _
+  clean=${clean/-\./\.} # remove trailing - from blank filename
 
-  # TODO Replace with common function
-  #check if file already exists and increment if needed
-  old_filepath="$dest/$dst_dn/$clean"
+  # Check if file already exists and increment if needed
   new_filepath="$dest/$dst_dn/$clean"
-  if [ -f "$new_filepath" ]; then
-     echo "Error while processing $src. $new_filepath already exists! Adding an increment."
-     inc=0
-     #replace .jpg with $inc.jpg 
-     while [ -f "$new_filepath" ]; do 
-       inc=$((inc+1)) 
-       new_filepath="${old_filepath/\.jpg/-$inc\.jpg}"
-     done
-  fi
+  new_filepath=$(get_uniq_filename $new_filepath)
 
   if [ -f "$new_filepath" ] ; then
     echo $new_filepath already exists. Skipping.
   else
-    echo $extension
-    echo $new_filepath
     # Retry from https://unix.stackexchange.com/a/82610/169986
-    # for i in {1..5}; do move "$src" "$new_filepath" && break || sleep 1; done
+    for i in {1..5}; do rsync_move "$src" "$new_filepath" && break || sleep 1; done
   fi
 done

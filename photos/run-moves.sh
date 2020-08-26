@@ -18,4 +18,7 @@ command -v exif >/dev/null 2>&1 || { echo >&2 "I require exif but it's not insta
 find "${src1}" -iname "*.jpg" -exec ./move-photos.sh {} ${dst} \;
 find "${src2}" -iname "*.jpg" -exec ./move-photos.sh {} ${dst} \;
 
+find "${src1}" -iname "*.mp4" -exec ./move-movies.sh {} ${dst} \;
+find "${src2}" -iname "*.mp4" -exec ./move-movies.sh {} ${dst} \;
+
 cd $here
