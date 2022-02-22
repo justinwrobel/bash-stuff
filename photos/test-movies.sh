@@ -37,7 +37,7 @@ dest="${!#}" # Get last parameter
 for src ; do
   if [[ $src == $dest ]] ; then continue; fi
   # ${src,,} convert to lower case
-  ext=$(get_ext "${src,,}")
+  ext=$(get_ext ${src,,})
   file_types=(mp4 mov avi 3gp wmv)
   if ! element_in $ext "${file_types[@]}"; then echo "Error while processing $src: $ext is an unsupported filetype (${file_types[@]}). Skipping."; continue; fi
 
@@ -72,13 +72,8 @@ for src ; do
   clean=${clean/-\./\.} # remove trailing - from blank filename
 
   new_filepath="$dest/$dst_dn/$clean"
-  new_filepath=$(get_uniq_filename $new_filepath)
 
-  if [ -f "$new_filepath" ] ; then
-    echo $new_filepath already exists. Skipping.
-  else
-    # Retry from https://unix.stackexchange.com/a/82610/169986
-    for i in {1..5}; do move "$src" "$new_filepath" && break || sleep 1; done
-    # echo "$new_filepath"
+  if [ ! -f "$new_filepath" ] ; then
+    echo $src doesn\'t exist at $new_filepath
   fi
 done

@@ -56,6 +56,7 @@ class PictureRepo():
         ret = {}
         i = PilImage.open(filename)
         ret['JWResolution'] = "{}x{}".format(i.size[1], i.size[0])
+        i.close()
         ret['JWFilename'] = filename
         ret['JWFilebase'] = os.path.basename(filename)
         ret['JWFiledir'] = os.path.dirname(filename)

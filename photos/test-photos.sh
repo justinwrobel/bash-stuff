@@ -68,7 +68,6 @@ for src ; do
     dst2=$(read_tag 0x0132 "$src")
     if [[ ! $dst2 =~ $datetime_pattern ]] || false ; then
       echo "Invalid datetime detected ($dst1, $dst2). skipping $src."
-      # TODO use filename?
       continue
     fi
   fi
@@ -95,17 +94,13 @@ for src ; do
   [[ $filename =~ [-_]?[0-9]{8}[-_][0-9]{6}[-_]? ]] \
    && filename=${filename/${BASH_REMATCH[0]}}
 
-  clean=$(clean_filename "${dst_fn}_${model,,}-${filename,,}")
-  clean=${clean/-\./\.} # remove trailing - from blank filename
+  clean=$(clean_filename "${dst_fn}_${model,,}_${filename,,}")
+  clean=${clean/_\./\.} # remove trailing - from blank filename
 
   # Check if file already exists and increment if needed
   new_filepath="$dest/$dst_dn/$clean"
-  new_filepath=$(get_uniq_filename $new_filepath)
 
-  if [ -f "$new_filepath" ] ; then
-    echo $new_filepath already exists. Skipping.
-  else
-    # Retry from https://unix.stackexchange.com/a/82610/169986
-    for i in {1..5}; do rsync_move "$src" "$new_filepath" && break || sleep 1; done
+  if [ ! -f "$new_filepath" ] ; then
+    echo $src doesn\'t exist at $new_filepath
   fi
 done

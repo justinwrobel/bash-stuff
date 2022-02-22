@@ -5,7 +5,7 @@ SCRIPTPATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $SCRIPTPATH
 
 remote="/run/user/1000/gvfs/smb-share:server=skylark,share="
-src1="${remote}multimedia/Pictures/drop/Shannon/Camera"
+src1="${remote}homes/swille3/Camera Uploads"
 src2="${remote}homes/admin/Camera Uploads"
 dst="${remote}pictures/"
 
