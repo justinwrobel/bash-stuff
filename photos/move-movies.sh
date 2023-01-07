@@ -74,6 +74,14 @@ for src ; do
   new_filepath="$dest/$dst_dn/$clean"
   new_filepath=$(get_uniq_filename $new_filepath)
 
+# ssh admin@skylark "mv"
+# src '/run/user/1000/gvfs/smb-share:server=skylark,share=homes/swille3/Camera Uploads/Camera/PXL_20220922_212648686.mp4'
+# to                                               '/share/homes/swille3/Camera Uploads/Camera/PXL_20220922_212648686.mp4'
+# dst '/run/user/1000/gvfs/smb-share:server=skylark,share=pictures//2022/09/20220922_212648-pxl686.mp4'
+# to                                               '/share/Pictures//2022/09/20220922_212648-pxl686.mp4'
+# TODO should accept ssh dest?
+
+
   if [ -f "$new_filepath" ] ; then
     echo $new_filepath already exists. Skipping.
   else

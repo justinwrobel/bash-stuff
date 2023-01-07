@@ -15,10 +15,30 @@ command -v exif >/dev/null 2>&1 || { echo >&2 "I require exif but it's not insta
 [ ! -d "$src2" ] && echo "$src2 not mounted" && exit 1
 [ ! -d "$dst" ] && echo "$dst not mounted" && exit 1
 
-find "${src1}" -iname "*.jpg" -exec ./move-photos.sh {} ${dst} \;
-find "${src2}" -iname "*.jpg" -exec ./move-photos.sh {} ${dst} \;
+#find "${src1}" -iname "*.jpg" -exec ./move-photos.sh {} ${dst} \;
+#find "${src2}" -iname "*.jpg" -exec ./move-photos.sh {} ${dst} \;
 
-find "${src1}" -iname "*.mp4" -exec ./move-movies.sh {} ${dst} \;
-find "${src2}" -iname "*.mp4" -exec ./move-movies.sh {} ${dst} \;
+#find "${src1}" -iname "*.mp4" -exec ./move-movies-ssh.sh {} ${dst} \;
+#find "${src2}" -iname "*.mp4" -exec ./move-movies.sh {} ${dst} \;
+
+# Find files and run using bash5, server only has bash3
+
+find "$src1" -name *mp4 -exec \
+  ./move-movies-ssh.sh \
+  admin@skylark \
+  '{}' \
+  "$src1" \
+  /share/ \
+  /share/Pictures/ \
+\;
+
+find "$src2" -name *mp4 -exec \
+  ./move-movies-ssh.sh \
+  admin@skylark \
+  '{}' \
+  "$remote" \
+  /share/ \
+  /share/Pictures/ \
+\;
 
 cd $here

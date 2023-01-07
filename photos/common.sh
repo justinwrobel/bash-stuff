@@ -30,11 +30,23 @@ get_uniq_filename() {
 rsync_move() {
   src=$1
   dst=$2
+
   mkdir -p "$(dirname $dst)" \
     && rsync -t "$src" "$dst" \
     && rm "$src" \
     && return 0 \
     || >&2 echo "$? Issue processing $src" && return 1
+}
+
+ssh_move() {
+  server=$1
+  src=$2
+  dst=$3
+
+  ssh $server "mkdir -p \"$(dirname $dst)\"" \
+    && ssh $server "mv -f \"$src\" \"$dst\"" \
+    && return 0 \
+    || >&2 echo "$? Issue processing $src to $dst" && return 1
 }
 
 move() {
@@ -43,7 +55,7 @@ move() {
   mkdir -p "$(dirname $dst)" \
     && mv "$src" "$dst" \
     && return 0 \
-    || >&2 echo "$? Issue processing $src" && return 1
+    || >&2 echo "$? Issue processing $src to $dst" && return 1
 }
 
 # https://stackoverflow.com/a/8574392/792789
