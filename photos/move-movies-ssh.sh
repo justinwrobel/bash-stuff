@@ -22,9 +22,10 @@ if ((  ${#} < 2 )); then
 	
 	  SERVER: admin@skylark
 	  SRC: /run/user/1000/gvfs/smb-share:server=skylark,share=homes/swille3/Camera Uploads/Camera/PXL_20220922_212648686.mp4
-	  SRC_PREFIX: /run/user/1000/gvfs/smb-share:server=skylark,share=swille3/
-	  SRC_SERVER_PREFIX: /share/homes/swille3/
+	  SRC_PREFIX: /run/user/1000/gvfs/smb-share:server=skylark,share=
+	  SRC_SERVER_PREFIX: /share/
 	  DST_SERVER_PREFIX: /share/Pictures/
+	  DEST: /share/Pictures
 	
 	DESCRIPTION
 	  Move SRC to a date-based directory stucture in DEST. The directory structure is based on either SRC's name or last modified.
