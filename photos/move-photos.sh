@@ -60,16 +60,24 @@ for src ; do
   model=$(read_tag 0x0110 "$src")
   if [ -z "$model" ] || [[ $model =~ "ExifData" ]]; then model="unknown"; fi
   dst1=$(read_tag 0x9003 "$src") #2013:07:17 22:28:06, 2019-09-15T00:00:00Z
+  dst2=$(read_tag 0x0132 "$src")
 
-  datetime_pattern="([0-9]{4})[:-]([0-9]{2})[:-]([0-9]{2}).([0-9]{2})[:-]([0-9]{2})[:-]([0-9]{2})"
+  # e.g., 2022:12:24T13:03:02, 2022-12-24 13:03:02 20200202131313 or 20200202_131313
+  datetime_pattern="([0-9]{4})[:-]?([0-9]{2})[:-]?([0-9]{2}).?([0-9]{2})[:-]?([0-9]{2})[:-]?([0-9]{2})"
 
   #if dst1 isn't valid date time
   if [[ ! $dst1 =~ $datetime_pattern ]] ; then
-    dst2=$(read_tag 0x0132 "$src")
     if [[ ! $dst2 =~ $datetime_pattern ]] || false ; then
-      echo "Invalid datetime detected ($dst1, $dst2). skipping $src."
-      # TODO use filename?
-      continue
+      # Use filename
+      if [[ ! $src =~ $datetime_pattern ]] || false ; then
+        # TODO make togglable
+        # Use date-modified
+        #if [[ ! $(date -r $src -Isec)  =~ $datetime_pattern ]] || false ; then
+          echo "Invalid datetime detected ($dst1, $dst2). skipping $src."
+
+          continue
+        #fi
+      fi
     fi
   fi
 
@@ -95,6 +103,10 @@ for src ; do
   [[ $filename =~ [-_]?[0-9]{8}[-_][0-9]{6}[-_]? ]] \
    && filename=${filename/${BASH_REMATCH[0]}}
 
+  # 20140824_104341_samsung_sch-i545_20140824_104341
+  #old_clean=$(clean_filename "${dst_fn}_${manuf}_${model,,}-${filename,,}")
+  #old_clean=${old_clean/-\./\.} # remove trailing - from blank filename
+
   clean=$(clean_filename "${dst_fn}_${model,,}-${filename,,}")
   clean=${clean/-\./\.} # remove trailing - from blank filename
 
@@ -102,8 +114,11 @@ for src ; do
   new_filepath="$dest/$dst_dn/$clean"
   new_filepath=$(get_uniq_filename $new_filepath)
 
-  if [ -f "$new_filepath" ] ; then
+  if [[ -f "$new_filepath" ]] ; then
     echo $new_filepath already exists. Skipping.
+  # Commented out becuase it isn't scalable
+  #elif [[ -f "$dest/$dst_dn/$old_clean" ]] ; then
+  #  echo old format $old_clean already exists. Skipping.
   else
     # Retry from https://unix.stackexchange.com/a/82610/169986
     for i in {1..5}; do rsync_move "$src" "$new_filepath" && break || sleep 1; done

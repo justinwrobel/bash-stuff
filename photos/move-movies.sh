@@ -87,6 +87,5 @@ for src ; do
   else
     # Retry from https://unix.stackexchange.com/a/82610/169986
     for i in {1..5}; do move "$src" "$new_filepath" && break || sleep 1; done
-    # echo "$new_filepath"
   fi
 done
